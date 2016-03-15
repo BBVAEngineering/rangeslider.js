@@ -7,6 +7,10 @@ $rangeslider--disabled:     ".rangeslider--disabled";
 $rangeslider__fill:         ".rangeslider__fill";
 $rangeslider__handle:       ".rangeslider__handle";
 
+$handler-size:              1.250em;
+$triangle-size:             0.625em;
+$air:                       0.500em;
+
 #{$rangeslider},
 #{$rangeslider__fill} {
     display: block;
@@ -20,12 +24,12 @@ $rangeslider__handle:       ".rangeslider__handle";
 }
 
 #{$rangeslider--horizontal} {
-    height: 20px;
+    height: $handler-size;
     width: 100%;
 }
 
 #{$rangeslider--vertical} {
-    width: 20px;
+    width: $handler-size;
     min-height: 150px;
     max-height: 100%;
 }
@@ -54,30 +58,54 @@ $rangeslider__handle:       ".rangeslider__handle";
     border: 1px solid #ccc;
     cursor: pointer;
     display: inline-block;
-    width: 40px;
-    height: 40px;
+    width: $handler-size * 2;
+    height: $handler-size * 2;
     position: absolute;
     @include background-image(linear-gradient(rgba(white, 0), rgba(black, .10)));
     @include box-shadow(0 0 8px rgba(black, .3));
     @include border-radius(50%);
 
-    &:after {
-        content: "";
-        display: block;
-        width: 18px;
-        height: 18px;
-        margin: auto;
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        @include background-image(linear-gradient(rgba(black, .13), rgba(white, 0)));
-        @include border-radius(50%);
-    }
+    &.tooltip {
+        &:after {
+            position: absolute;
+            bottom: -$triangle-size;
+            width: 0;
+            height: 0;
+            display: block;
+            border: $triangle-size solid transparent;
+            border-top-color: #006ec1;
+            border-bottom-width: 0;
+            content: '';
+            -webkit-transform: translate($triangle-size, -($handler-size * 2 + $triangle-size + $air));
+            transform: translate($triangle-size, -($handler-size * 2 + $triangle-size + $air));
+            pointer-events: none;
+        }
 
-    &:active {
-        @include background-image(linear-gradient(rgba(black, .10), rgba(black, .12)));
+        &:before {
+            content: attr(data-input-value);
+            position: absolute;
+            border-radius: 0;
+            top: -($handler-size + $triangle-size + $air);
+            min-width: 1.75000em;
+            padding: 0.75em;
+            display: inline-block;
+            color: white;
+            font-size: 1em;
+            text-align: center;
+            background-color: #006ec1;
+            transform: translateY(-1.5em);
+            pointer-events: none;
+        }
+
+        &.fade {
+            &:before, &:after {
+                opacity: 0;
+                transition: opacity .2s;
+            }
+            &:active:before, &:active:after {
+                opacity: 1;
+            }
+        }
     }
 
     #{$rangeslider--horizontal} & {

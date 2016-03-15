@@ -36,6 +36,8 @@
         hasInputRangeSupport = supportsRange(),
         defaults = {
             polyfill: true,
+            tooltip: false,
+            tooltipFixed: false,
             orientation: 'horizontal',
             rangeClass: 'rangeslider',
             disabledClass: 'rangeslider--disabled',
@@ -217,12 +219,15 @@
         this.$window            = $(window);
         this.$document          = $(document);
         this.$element           = $(element);
+        this.$sheet             = null;
         this.options            = $.extend( {}, defaults, options );
         this.polyfill           = this.options.polyfill;
         this.orientation        = this.$element[0].getAttribute('data-orientation') || this.options.orientation;
         this.onInit             = this.options.onInit;
         this.onSlide            = this.options.onSlide;
         this.onSlideEnd         = this.options.onSlideEnd;
+        this.tooltip            = this.options.tooltip;
+        this.tooltipFixed       = this.options.tooltipFixed;
         this.DIMENSION          = constants.orientation[this.orientation].dimension;
         this.DIRECTION          = constants.orientation[this.orientation].direction;
         this.DIRECTION_STYLE    = constants.orientation[this.orientation].directionStyle;
@@ -240,7 +245,7 @@
         this.endEvent   = this.options.endEvent.join('.' + this.identifier + ' ') + '.' + this.identifier;
         this.toFixed    = (this.step + '').replace('.', '').length - 1;
         this.$fill      = $('<div class="' + this.options.fillClass + '" />');
-        this.$handle    = $('<div class="' + this.options.handleClass + '" />');
+        this.$handle    = $('<div class="' + this.options.handleClass + (this.tooltip ? ' tooltip' : '') + (this.tooltip && !this.tooltipFixed ? ' fade' : '') + '" />');
         this.$range     = $('<div class="' + this.options.rangeClass + ' ' + this.options[this.orientation + 'Class'] + '" id="' + this.identifier + '" />').insertAfter(this.$element).prepend(this.$fill, this.$handle);
 
         // visually hide the input
@@ -281,6 +286,11 @@
     }
 
     Plugin.prototype.init = function() {
+        // Init style tooltip
+        if (this.tooltip) {
+           this.$sheet = $('<style>').appendTo('body');
+        }
+
         this.update(true, false);
 
         if (this.onInit && typeof this.onInit === 'function') {
@@ -312,6 +322,12 @@
         }
 
         this.setPosition(this.position, triggerSlide);
+
+        // Init & resize set data-input-value
+        if (this.tooltip) {
+            this.$handle.attr('data-input-value', this.value);
+        }
+
     };
 
     Plugin.prototype.handleDown = function(e) {
@@ -329,7 +345,6 @@
             setPos      = (this.orientation === 'vertical') ? (this.maxHandlePos - (pos - this.grabPos)) : (pos - this.grabPos);
 
         this.setPosition(setPos);
-
         if (pos >= handlePos && pos < handlePos + this.handleDimension) {
             this.grabPos = pos - handlePos;
         }
@@ -437,6 +452,13 @@
             return;
         }
 
+        // Update data-input-value
+        if (this.tooltip) {
+            this.$handle.attr('data-input-value', value);
+            var left = ((value-this.min)/(this.max-this.min))*100;
+            this.$sheet.text('#' + this.$range.attr('id') + ' .rangeslider__handle:before {left:' + left + '%; transform:translate(-' + left + '%, -1.5em);}');
+        }
+
         // Set the new value and fire the `input` event
         this.$element
             .val(value)
@@ -455,6 +477,11 @@
         // Remove the generated markup
         if (this.$range && this.$range.length) {
             this.$range[0].parentNode.removeChild(this.$range[0]);
+        }
+
+        // Remove tooltip styles if present
+        if (this.tooltip) {
+            this.$sheet.remove();
         }
     };
 
