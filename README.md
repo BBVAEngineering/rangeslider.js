@@ -10,6 +10,7 @@ Check out the [examples](http://rangeslider.js.org/).
 * Recalculates `onresize` so suitable for use within responsive designs
 * Small and fast
 * Supports all major browsers including IE8+
+* Shows a sticky tooltip with the current value, fixed or not by configuration
 
 ## Install
 [📦](https://www.npmjs.org/): ``npm install --save rangeslider.js``                                          
